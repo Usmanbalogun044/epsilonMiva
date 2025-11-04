@@ -138,10 +138,7 @@ async def handle_chat_message(session_id: str, user_input: str):
             (part.get('text') for part in content_parts if isinstance(part, dict) and part.get('type') == 'text'),
             None
         )
-        ai_text = re.sub(r"\*\*(.*?)\*\*", r"\1", ai_text)
-
-        print(ai_text)
-
+        # ai_text = re.sub(r"\*\*(.*?)\*\*", r"\1", ai_text)  
 
 
         # Add assistant response to full history
@@ -179,19 +176,42 @@ async def websocket_endpoint(websocket: WebSocket, session_id: str):
 
     try:
         while True:
-            # Receive user message
             user_input = await websocket.receive_text()
-            
-            # Process message and get response
-            response = await handle_chat_message(session_id, user_input)
-            
-            # Send response back to client
-            await websocket.send_text(response)
-            
+            ai_response = await handle_chat_message(session_id, user_input)
+
+            # send JSON message directly
+            await websocket.send_json({
+                "message": ai_response,
+                "format": "markdown"
+            })
+
     except WebSocketDisconnect:
-        # Clean up on disconnect
         conversation_histories.pop(session_id, None)
         logging.info(f"Client {session_id} disconnected")
+
+# @app.websocket("/ws/{session_id}")
+# async def websocket_endpoint(websocket: WebSocket, session_id: str):
+#     await websocket.accept()
+#     initialize_conversation(session_id)
+
+#     try:
+#         while True:
+#             # Receive user message
+#             user_input = await websocket.receive_text()
+            
+#             # Process message and get response
+#             response = await handle_chat_message(session_id, user_input)
+
+#             response = JSONResponse(content={"message": response, "format": "markdown"},  status_code=200, headers={"X-Custom": "MyHeader"}
+# )
+            
+#             # Send response back to client
+#             await websocket.send_text(response)
+            
+#     except WebSocketDisconnect:
+#         # Clean up on disconnect
+#         conversation_histories.pop(session_id, None)
+#         logging.info(f"Client {session_id} disconnected")
 
 # HTTP POST endpoints for testing
 @app.post("/chat", response_model=ChatResponse)
