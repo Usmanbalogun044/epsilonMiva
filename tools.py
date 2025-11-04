@@ -1,151 +1,316 @@
+
 ollama_tools = [
     {
         "type": "function",
         "function": {
-            "name": "search_laws_and_regulations",
-            "description": "Search and retrieve summaries or key provisions from GDPR, NDPA 2023, HIPAA, and CCPA for comparison.",
+            "name": "generate_chat_lesson",
+            "description": "Generate a short, text-based lesson that feels conversational and adaptive to the user's level and learning mode.",
             "parameters": {
                 "type": "object",
                 "properties": {
-                    "query": {
+                    "subject": {
                         "type": "string",
-                        "description": "The keyword or question to search for within data privacy laws, e.g., 'data breach notification in GDPR'."
+                        "enum": ["Mathematics", "English", "Life Skills"],
+                        "description": "The subject for the chat-based lesson."
                     },
-                    "jurisdiction": {
+                    "topic": {
                         "type": "string",
-                        "enum": ["GDPR", "NDPA 2023", "HIPAA", "CCPA", "All"],
-                        "description": "Specify which regulation to search."
+                        "description": "Specific topic for the lesson, e.g., 'Addition', 'Reading simple sentences', 'Filling a bank form'."
+                    },
+                    "learning_mode": {
+                        "type": "string",
+                        "enum": ["Standard", "ADHD", "Dyslexia", "Processing Delay"],
+                        "description": "Customizes lesson pacing and tone for neurodivergent learners."
+                    },
+                    "difficulty_level": {
+                        "type": "string",
+                        "enum": ["Beginner", "Intermediate", "Advanced"],
+                        "default": "Beginner",
+                        "description": "Defines lesson complexity."
                     }
                 },
-                "required": ["query"]
+                "required": ["subject", "topic", "learning_mode"]
             }
         }
     },
     {
         "type": "function",
         "function": {
-            "name": "compare_regulations",
-            "description": "Compare GDPR, NDPA 2023, HIPAA, and CCPA across specific privacy categories.",
+            "name": "evaluate_user_response",
+            "description": "Evaluate a learner's text answer, provide gentle feedback, and offer hints if needed.",
             "parameters": {
                 "type": "object",
                 "properties": {
-                    "categories": {
+                    "question": {"type": "string", "description": "The question or prompt asked by the AI tutor."},
+                    "user_response": {"type": "string", "description": "User's text-based answer to evaluate."},
+                    "learning_mode": {
+                        "type": "string",
+                        "enum": ["Standard", "ADHD", "Dyslexia", "Processing Delay"],
+                        "description": "Used to adjust tone and feedback pacing."
+                    }
+                },
+                "required": ["question", "user_response"]
+            }
+        }
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "generate_encouragement_message",
+            "description": "Generate a supportive, patient, and motivating message to keep the learner engaged.",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "context": {
+                        "type": "string",
+                        "enum": ["LessonStart", "CorrectAnswer", "Retry", "EndOfLesson", "Encouragement"],
+                        "description": "Context of the message to tailor tone."
+                    },
+                    "user_name": {
+                        "type": "string",
+                        "description": "User’s name or nickname for personalization.",
+                        "default": "Friend"
+                    }
+                },
+                "required": ["context"]
+            }
+        }
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "suggest_next_topic",
+            "description": "Suggest the next best topic or lesson based on completed topics and progress trends.",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "subject": {
+                        "type": "string",
+                        "enum": ["Mathematics", "English", "Life Skills"],
+                        "description": "Current subject area."
+                    },
+                    "completed_topics": {
                         "type": "array",
                         "items": {"type": "string"},
-                        "description": "List of privacy aspects to compare, e.g., ['data subject rights', 'penalties', 'data breach response']."
+                        "description": "List of completed lesson topics."
+                    },
+                    "performance": {
+                        "type": "number",
+                        "description": "Average learner performance score (0–100)."
                     }
                 },
-                "required": ["categories"]
+                "required": ["subject", "completed_topics"]
             }
         }
     },
     {
         "type": "function",
         "function": {
-            "name": "summarize_literature",
-            "description": "Summarize academic papers or industry sources related to cloud database privacy or legal frameworks.",
+            "name": "generate_practice_questions",
+            "description": "Create short, interactive text-based exercises or questions related to a topic.",
             "parameters": {
                 "type": "object",
                 "properties": {
-                    "text": {
+                    "topic": {"type": "string", "description": "The lesson topic for which to create practice questions."},
+                    "difficulty_level": {
                         "type": "string",
-                        "description": "Full text or abstract of a research paper or article."
+                        "enum": ["Easy", "Medium", "Hard"],
+                        "default": "Easy",
+                        "description": "Difficulty level of questions."
                     },
-                    "word_limit": {
+                    "question_count": {
                         "type": "integer",
-                        "description": "Desired length of the summary in words.",
-                        "default": 200
+                        "description": "How many practice questions to generate.",
+                        "default": 3
                     }
                 },
-                "required": ["text"]
+                "required": ["topic"]
             }
         }
     },
     {
         "type": "function",
         "function": {
-            "name": "generate_apa_reference",
-            "description": "Generate an APA 7th edition formatted citation for a source.",
+            "name": "summarize_lesson",
+            "description": "Summarize the key takeaways from a completed chat-based lesson in simple, supportive language.",
             "parameters": {
                 "type": "object",
                 "properties": {
-                    "author": {"type": "string", "description": "Author(s) of the source."},
-                    "year": {"type": "string", "description": "Publication year."},
-                    "title": {"type": "string", "description": "Title of the source."},
-                    "source_type": {
+                    "lesson_content": {
                         "type": "string",
-                        "enum": ["journal", "book", "website", "report"],
-                        "description": "Type of the source for correct formatting."
+                        "description": "Full text or structured content of the completed lesson."
                     },
-                    "url": {"type": "string", "description": "URL or DOI if available."}
-                },
-                "required": ["author", "year", "title", "source_type"]
-            }
-        }
-    },
-    {
-        "type": "function",
-        "function": {
-            "name": "analyze_case_study",
-            "description": "Analyze how privacy laws apply to the EduCloud University System (EUS) scenario.",
-            "parameters": {
-                "type": "object",
-                "properties": {
-                    "issue": {"type": "string", "description": "Specific incident or privacy challenge from the EduCloud case."},
-                    "law_framework": {
+                    "learning_mode": {
                         "type": "string",
-                        "enum": ["GDPR", "NDPA 2023", "HIPAA", "CCPA"],
-                        "description": "The regulation to analyze the issue against."
+                        "enum": ["Standard", "ADHD", "Dyslexia", "Processing Delay"],
+                        "description": "Adjusts summary pacing and phrasing."
                     }
                 },
-                "required": ["issue", "law_framework"]
-            }
-        }
-    },
-    {
-        "type": "function",
-        "function": {
-            "name": "generate_section_draft",
-            "description": "Generate a draft of a specific research paper section following APA and rubric standards.",
-            "parameters": {
-                "type": "object",
-                "properties": {
-                    "section_name": {
-                        "type": "string",
-                        "enum": ["Introduction", "Literature Review", "Methodology", "Findings", "Conclusions"],
-                        "description": "Which section of the academic paper to generate."
-                    },
-                    "focus": {
-                        "type": "string",
-                        "description": "The key theme or focus for that section, e.g., 'GDPR vs NDPA compliance in EduCloud'."
-                    }
-                },
-                "required": ["section_name"]
-            }
-        }
-    },
-    {
-        "type": "function",
-        "function": {
-            "name": "export_report",
-            "description": "Export the entire paper or a section to a document file (PDF or DOCX).",
-            "parameters": {
-                "type": "object",
-                "properties": {
-                    "content": {"type": "string", "description": "The full academic text to export."},
-                    "format": {
-                        "type": "string",
-                        "enum": ["pdf", "docx"],
-                        "description": "Output file format."
-                    },
-                    "filename": {
-                        "type": "string",
-                        "description": "Desired output filename.",
-                        "default": "comparative_study"
-                    }
-                },
-                "required": ["content", "format"]
+                "required": ["lesson_content"]
             }
         }
     }
 ]
+
+
+tools = [
+    {
+      "type": "function",
+      "function": {
+        "name": "generate_chat_lesson",
+        "description": "Generate a short, text-based lesson that feels conversational and adaptive to the user's level and learning mode.",
+        "parameters": {
+          "type": "object",
+          "properties": {
+            "subject": {
+              "type": "string",
+              "enum": ["Mathematics", "English", "Life Skills"],
+              "description": "The subject for the chat-based lesson."
+            },
+            "topic": {
+              "type": "string",
+              "description": "Specific topic for the lesson, e.g., 'Addition', 'Reading simple sentences', 'Filling a bank form'."
+            },
+            "learning_mode": {
+              "type": "string",
+              "enum": ["Standard", "ADHD", "Dyslexia", "Processing Delay"],
+              "description": "Customizes lesson pacing and tone for neurodivergent learners."
+            },
+            "difficulty_level": {
+              "type": "string",
+              "enum": ["Beginner", "Intermediate", "Advanced"],
+              "default": "Beginner",
+              "description": "Defines lesson complexity."
+            }
+          },
+          "required": ["subject", "topic", "learning_mode"]
+        }
+      }
+    },
+    {
+      "type": "function",
+      "function": {
+        "name": "evaluate_user_response",
+        "description": "Evaluate a learner's text answer, provide gentle feedback, and offer hints if needed.",
+        "parameters": {
+          "type": "object",
+          "properties": {
+            "question": {
+              "type": "string",
+              "description": "The question or prompt asked by the AI tutor."
+            },
+            "user_response": {
+              "type": "string",
+              "description": "User's text-based answer to evaluate."
+            },
+            "learning_mode": {
+              "type": "string",
+              "enum": ["Standard", "ADHD", "Dyslexia", "Processing Delay"],
+              "description": "Used to adjust tone and feedback pacing."
+            }
+          },
+          "required": ["question", "user_response"]
+        }
+      }
+    },
+    {
+      "type": "function",
+      "function": {
+        "name": "generate_encouragement_message",
+        "description": "Generate a supportive, patient, and motivating message to keep the learner engaged.",
+        "parameters": {
+          "type": "object",
+          "properties": {
+            "context": {
+              "type": "string",
+              "enum": ["LessonStart", "CorrectAnswer", "Retry", "EndOfLesson", "Encouragement"],
+              "description": "Context of the message to tailor tone."
+            },
+            "user_name": {
+              "type": "string",
+              "description": "User’s name or nickname for personalization.",
+              "default": "Friend"
+            }
+          },
+          "required": ["context"]
+        }
+      }
+    },
+    {
+      "type": "function",
+      "function": {
+        "name": "suggest_next_topic",
+        "description": "Suggest the next best topic or lesson based on completed topics and progress trends.",
+        "parameters": {
+          "type": "object",
+          "properties": {
+            "subject": {
+              "type": "string",
+              "enum": ["Mathematics", "English", "Life Skills"],
+              "description": "Current subject area."
+            },
+            "completed_topics": {
+              "type": "array",
+              "items": { "type": "string" },
+              "description": "List of completed lesson topics."
+            },
+            "performance": {
+              "type": "number",
+              "description": "Average learner performance score (0–100)."
+            }
+          },
+          "required": ["subject", "completed_topics"]
+        }
+      }
+    },
+    {
+      "type": "function",
+      "function": {
+        "name": "generate_practice_questions",
+        "description": "Create short, interactive text-based exercises or questions related to a topic.",
+        "parameters": {
+          "type": "object",
+          "properties": {
+            "topic": {
+              "type": "string",
+              "description": "The lesson topic for which to create practice questions."
+            },
+            "difficulty_level": {
+              "type": "string",
+              "enum": ["Easy", "Medium", "Hard"],
+              "default": "Easy",
+              "description": "Difficulty level of questions."
+            },
+            "question_count": {
+              "type": "integer",
+              "description": "How many practice questions to generate.",
+              "default": 3
+            }
+          },
+          "required": ["topic"]
+        }
+      }
+    },
+    {
+      "type": "function",
+      "function": {
+        "name": "summarize_lesson",
+        "description": "Summarize the key takeaways from a completed chat-based lesson in simple, supportive language.",
+        "parameters": {
+          "type": "object",
+          "properties": {
+            "lesson_content": {
+              "type": "string",
+              "description": "Full text or structured content of the completed lesson."
+            },
+            "learning_mode": {
+              "type": "string",
+              "enum": ["Standard", "ADHD", "Dyslexia", "Processing Delay"],
+              "description": "Adjusts summary pacing and phrasing."
+            }
+          },
+          "required": ["lesson_content"]
+        }
+      }
+    }
+  ]
