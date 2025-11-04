@@ -16,9 +16,6 @@ MODEL_NAME = os.environ.get('MODEL_NAME_')
 
 
 
-# Alternatively in a Databricks notebook you can use this:
-# DATABRICKS_TOKEN = dbutils.notebook.entry_point.getDbutils().notebook().getContext().apiToken().get()
-
 client = OpenAI(
     api_key=DATABRICKS_TOKEN ,
     base_url=BASE_URL
