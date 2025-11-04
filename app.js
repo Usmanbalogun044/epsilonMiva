@@ -203,9 +203,8 @@
 
   if (startJourneyBtn) {
     startJourneyBtn.addEventListener('click', () => {
-      // Navigate to main app/dashboard (placeholder for now)
-      alert('Welcome to your personalized learning journey! 🎓');
-      location.href = 'index.html';
+      // Navigate to student dashboard
+      location.href = 'dashboard.html';
     });
   }
 

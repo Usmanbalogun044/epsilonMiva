@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard – Tega</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body class="dashboard-body">
+  <div class="dashboard-layout">
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <div class="app-logo">
+          <span class="logo-icon">🦉</span>
+          <span class="logo-text">Tega</span>
+        </div>
+        <button class="collapse-btn" aria-label="Collapse sidebar">‹</button>
+      </div>
+
+      <div class="user-profile">
+        <div class="avatar">🙂</div>
+        <div class="user-info">
+          <div class="user-name">Trust Ogbonna</div>
+          <div class="user-type">Child Learner</div>
+        </div>
+      </div>
+
+      <nav class="sidebar-nav">
+        <a href="#" class="nav-item active">
+          <span class="nav-icon">🏠</span>
+          <span class="nav-label">Home</span>
+        </a>
+        <a href="#" class="nav-item">
+          <span class="nav-icon">✨</span>
+          <span class="nav-label">Learn</span>
+        </a>
+        <a href="#" class="nav-item">
+          <span class="nav-icon">🏆</span>
+          <span class="nav-label">Badges</span>
+        </a>
+        <a href="#" class="nav-item">
+          <span class="nav-icon">⭐</span>
+          <span class="nav-label">Progress</span>
+        </a>
+      </nav>
+
+      <div class="streak-widget">
+        <div class="streak-label">Your Streak</div>
+        <div class="streak-value">
+          <span class="streak-icon">🔥</span>
+          <span class="streak-number">0</span>
+          <span class="streak-unit">days!</span>
+        </div>
+      </div>
+
+      <div class="sidebar-footer">
+        <a href="#" class="footer-link">
+          <span class="nav-icon">⚙️</span>
+          <span class="nav-label">Settings</span>
+        </a>
+        <a href="#" class="footer-link">
+          <span class="nav-icon">↗️</span>
+          <span class="nav-label">Exit</span>
+        </a>
+      </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="dashboard-main">
+      <header class="dashboard-header">
+        <div class="greeting">
+          <h1 class="greeting-title">Good afternoon, c!</h1>
+          <p class="greeting-subtitle">Ready to learn today? 🍎</p>
+        </div>
+        <div class="header-actions">
+          <button class="icon-btn" aria-label="Settings">⚙️</button>
+          <button class="icon-btn" aria-label="Notifications">🔔</button>
+        </div>
+      </header>
+
+      <div class="dashboard-content">
+        <!-- Owl Encouragement -->
+        <div class="encouragement-card">
+          <div class="owl-avatar">🦉</div>
+          <div class="encouragement-text">
+            <strong>"You're doing amazing! Let's keep going!"</strong>
+            <div class="encouragement-stats">
+              <span class="stat-item">🔥 0 day streak</span>
+              <span class="stat-item">⭐ 0 points</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="quick-actions">
+          <button class="action-card">
+            <div class="action-icon">📚</div>
+            <div class="action-label">My Progress</div>
+          </button>
+          <button class="action-card">
+            <div class="action-icon">🎮</div>
+            <div class="action-label">Fun Games</div>
+          </button>
+          <button class="action-card">
+            <div class="action-icon">🎁</div>
+            <div class="action-label">My Rewards</div>
+          </button>
+          <button class="action-card">
+            <div class="action-icon">🚀</div>
+            <div class="action-label">Take a Break</div>
+          </button>
+        </div>
+
+        <!-- Choose Your Adventure -->
+        <section class="adventure-section">
+          <h2 class="section-title">Choose Your Adventure</h2>
+          <div class="adventure-grid">
+            <div class="adventure-card accent-yellow">
+              <div class="adventure-icon">🔢</div>
+              <h3 class="adventure-title">Math Adventures</h3>
+              <p class="adventure-desc">Fun with numbers and shapes</p>
+            </div>
+            <div class="adventure-card accent-peach">
+              <div class="adventure-icon">📚</div>
+              <h3 class="adventure-title">Reading Quest</h3>
+              <p class="adventure-desc">Stories and word games</p>
+            </div>
+            <div class="adventure-card accent-blue">
+              <div class="adventure-icon">🔬</div>
+              <h3 class="adventure-title">Science Lab</h3>
+              <p class="adventure-desc">Explore how things work</p>
+            </div>
+            <div class="adventure-card accent-pink">
+              <div class="adventure-icon">🎨</div>
+              <h3 class="adventure-title">Creative Studio</h3>
+              <p class="adventure-desc">Draw and create</p>
+            </div>
+          </div>
+        </section>
+      </div>
+
+      <!-- Right Sidebar -->
+      <aside class="right-sidebar">
+        <div class="goals-widget">
+          <h3 class="widget-title">Today's Goals</h3>
+          <label class="goal-item">
+            <input type="checkbox">
+            <span class="goal-text">Complete a Lesson</span>
+          </label>
+          <label class="goal-item">
+            <input type="checkbox">
+            <span class="goal-text">Practice Reading (10 min)</span>
+          </label>
+          <label class="goal-item">
+            <input type="checkbox">
+            <span class="goal-text">Take a break</span>
+          </label>
+        </div>
+
+        <div class="achievements-widget">
+          <h3 class="widget-title">Recent Achievements</h3>
+          <div class="achievement-item">
+            <span class="achievement-icon">🏆</span>
+            <span class="achievement-text">Week 1 Complete!</span>
+          </div>
+          <div class="achievement-item">
+            <span class="achievement-icon">⭐</span>
+            <span class="achievement-text">Math Master Badge</span>
+          </div>
+        </div>
+      </aside>
+    </main>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
