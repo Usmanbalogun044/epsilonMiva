@@ -34,51 +34,86 @@ class ChatRequest(BaseModel):
     message: str
     session_id: str | None = "default"  # optional session id
 
+# --- Refactored Helper Functions ---
 
-# ✅ REST Chat Endpoint
+def get_and_update_conversation(session_id: str, user_message: str) -> list:
+    """
+    Retrieves or initializes a conversation history for a given session_id
+    and appends the new user message to it.
+    """
+    # Get or create conversation history
+    if session_id not in conversation_store:
+        conversation_store[session_id] = [{"role": "system", "content": system_prompt}]
+    
+    conversation = conversation_store[session_id]
+    
+    # Append user message
+    conversation.append({"role": "user", "content": user_message + "/no_think"})
+    
+    return conversation
+
+def generate_assistant_reply(conversation: list) -> str:
+    """
+    Calls the LLM with the conversation, appends the assistant's
+    reply to the history, and returns the assistant's message.
+    
+    Propagates exceptions to be handled by the caller.
+    """
+    # ✅ Generate response from Ollama/OpenAI
+    #    (Exceptions are intentionally not caught here,
+    #     so they can be handled by the endpoint)
+    response = client.chat.completions.create(
+        model=MODEL_NAME,
+        messages=conversation,
+        tools=ollama_tools,
+        tool_choice="auto",
+        temperature=0.9,
+    )
+
+    assistant_message = response.choices[0].message.content
+
+    # Add to history
+    conversation.append({"role": "assistant", "content": assistant_message})
+    
+    return assistant_message
+
+# --- Endpoints ---
+
 @app.post("/chat")
 async def chat(request: ChatRequest):
-    session_id = request.session_id or "default"
+    """
+    Handles a single chat message via REST API.
+    """
     user_message = request.message.strip()
     if not user_message:
         raise HTTPException(status_code=400, detail="Message cannot be empty")
 
-    # Get or create conversation history
-    if session_id not in conversation_store:
-        conversation_store[session_id] = [{"role": "system", "content": system_prompt}]
-
-    conversation = conversation_store[session_id]
-
-    # Append user message
-    conversation.append({"role": "user", "content": user_message + "/no_think"})
+    session_id = request.session_id or "default"
 
     try:
-        # ✅ Generate response from Ollama/OpenAI
-        response = client.chat.completions.create(
-            model=MODEL_NAME,
-            messages=conversation,
-            tools=ollama_tools,
-            tool_choice="auto",
-            temperature=0.9,
-        )
-
-        assistant_message = response.choices[0].message.content
-
-        # Add to history
-        conversation.append({"role": "assistant", "content": assistant_message})
-
+        # Get history and add user message
+        conversation = get_and_update_conversation(session_id, user_message)
+        
+        # Generate and add assistant reply
+        assistant_message = generate_assistant_reply(conversation)
+        
         return JSONResponse(content={"response": assistant_message, "session_id": session_id})
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
 
-# ✅ WebSocket Chat Endpoint
 @app.websocket("/ws/chat")
 async def websocket_chat(websocket: WebSocket):
+    """
+    Handles a persistent chat session via WebSocket.
+    """
     await websocket.accept()
     session_id = str(id(websocket))
+    
+    # Initialize conversation store for this new session
     conversation_store[session_id] = [{"role": "system", "content": system_prompt}]
+    
     await websocket.send_text("✅ Connected to Ollama Chat WebSocket")
 
     try:
@@ -90,26 +125,15 @@ async def websocket_chat(websocket: WebSocket):
                 await websocket.send_text("👋 Session closed.")
                 break
 
-            # Append user message
-            conversation = conversation_store[session_id]
-            conversation.append({"role": "user", "content": user_message + "/no_think"})
-
             # Send typing indicator
             await websocket.send_text("🤖 Thinking...")
 
             try:
-                # Generate assistant reply
-                response = client.chat.completions.create(
-                    model=MODEL_NAME,
-                    messages=conversation,
-                    tools=ollama_tools,
-                    tool_choice="auto",
-                    temperature=0.9,
-                )
-                assistant_message = response.choices[0].message.content
-
-                # Add to history
-                conversation.append({"role": "assistant", "content": assistant_message})
+                # Get history and add user message
+                conversation = get_and_update_conversation(session_id, user_message)
+                
+                # Generate and add assistant reply
+                assistant_message = generate_assistant_reply(conversation)
 
                 # Send response
                 await websocket.send_text(assistant_message)
@@ -125,10 +149,143 @@ async def websocket_chat(websocket: WebSocket):
         await websocket.close()
 
 
-# ✅ Root endpoint
 @app.get("/")
 async def root():
+    """
+    Root endpoint to confirm the server is running.
+    """
     return {"message": "Ollama FastAPI Chat Server is running 🚀"}
+# # app.py
+# from fastapi import FastAPI, WebSocket, WebSocketDisconnect, HTTPException
+# from fastapi.responses import JSONResponse
+# from pydantic import BaseModel
+# from openai import OpenAI
+# from dotenv import load_dotenv
+# import os
+# from tools import ollama_tools
+# from system_prompt import system_prompt
+
+# # ✅ Load environment variables
+# load_dotenv()
+
+# OLLAMA_BASE_URL = os.getenv("OLLAMA_BASE_URL")
+# OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
+# MODEL_NAME = os.getenv("MODEL_NAME")
+
+# # ✅ Initialize OpenAI (Ollama-compatible) client
+# client = OpenAI(
+#     base_url=OLLAMA_BASE_URL,
+#     api_key=OPENAI_API_KEY,
+# )
+
+# # ✅ Initialize FastAPI app
+# app = FastAPI(title="Ollama FastAPI Chat Server", version="1.0")
+
+# # ✅ In-memory store for conversations
+# #    Key: session_id or websocket id; Value: conversation history list
+# conversation_store = {}
+
+
+# # ✅ Request model for REST API
+# class ChatRequest(BaseModel):
+#     message: str
+#     session_id: str | None = "default"  # optional session id
+
+
+# # ✅ REST Chat Endpoint
+# @app.post("/chat")
+# async def chat(request: ChatRequest):
+#     session_id = request.session_id or "default"
+#     user_message = request.message.strip()
+#     if not user_message:
+#         raise HTTPException(status_code=400, detail="Message cannot be empty")
+
+#     # Get or create conversation history
+#     if session_id not in conversation_store:
+#         conversation_store[session_id] = [{"role": "system", "content": system_prompt}]
+
+#     conversation = conversation_store[session_id]
+
+#     # Append user message
+#     conversation.append({"role": "user", "content": user_message + "/no_think"})
+
+#     try:
+#         # ✅ Generate response from Ollama/OpenAI
+#         response = client.chat.completions.create(
+#             model=MODEL_NAME,
+#             messages=conversation,
+#             tools=ollama_tools,
+#             tool_choice="auto",
+#             temperature=0.9,
+#         )
+
+#         assistant_message = response.choices[0].message.content
+
+#         # Add to history
+#         conversation.append({"role": "assistant", "content": assistant_message})
+
+#         return JSONResponse(content={"response": assistant_message, "session_id": session_id})
+
+#     except Exception as e:
+#         raise HTTPException(status_code=500, detail=str(e))
+
+
+# # ✅ WebSocket Chat Endpoint
+# @app.websocket("/ws/chat")
+# async def websocket_chat(websocket: WebSocket):
+#     await websocket.accept()
+#     session_id = str(id(websocket))
+#     conversation_store[session_id] = [{"role": "system", "content": system_prompt}]
+#     await websocket.send_text("✅ Connected to Ollama Chat WebSocket")
+
+#     try:
+#         while True:
+#             # Wait for user message
+#             user_message = await websocket.receive_text()
+
+#             if user_message.lower() in ["exit", "quit"]:
+#                 await websocket.send_text("👋 Session closed.")
+#                 break
+
+#             # Append user message
+#             conversation = conversation_store[session_id]
+#             conversation.append({"role": "user", "content": user_message + "/no_think"})
+
+#             # Send typing indicator
+#             await websocket.send_text("🤖 Thinking...")
+
+#             try:
+#                 # Generate assistant reply
+#                 response = client.chat.completions.create(
+#                     model=MODEL_NAME,
+#                     messages=conversation,
+#                     tools=ollama_tools,
+#                     tool_choice="auto",
+#                     temperature=0.9,
+#                 )
+#                 assistant_message = response.choices[0].message.content
+
+#                 # Add to history
+#                 conversation.append({"role": "assistant", "content": assistant_message})
+
+#                 # Send response
+#                 await websocket.send_text(assistant_message)
+
+#             except Exception as e:
+#                 await websocket.send_text(f"❌ Error: {str(e)}")
+
+#     except WebSocketDisconnect:
+#         print(f"WebSocket disconnected: {session_id}")
+#     finally:
+#         # Clean up conversation store
+#         conversation_store.pop(session_id, None)
+#         await websocket.close()
+
+
+# # ✅ Root endpoint
+# @app.get("/")
+# async def root():
+#     return {"message": "Ollama FastAPI Chat Server is running 🚀"}
 
 
 # # # ✅ Run the server
