@@ -261,7 +261,7 @@
           if (userData.role === 'adult') {
             dashboardUrl = 'dashboard-adult.html';
           } else if (userData.role === 'parent') {
-            dashboardUrl = 'dashboard.html'; // Parent dashboard (can be created separately)
+            dashboardUrl = 'dashboard-parent.html';
           }
         } catch (e) {
           console.error('Failed to parse user data:', e);
@@ -279,4 +279,91 @@
       location.href = 'index.html';
     });
   }
+
+  // Chat Page Functionality
+  const messageInput = document.getElementById('message-input');
+  const sendBtn = document.getElementById('send-btn');
+  const chatMessages = document.getElementById('chat-messages');
+  const quickIdeaBtns = document.querySelectorAll('.quick-idea-btn');
+
+  function addMessage(text, isUser = false) {
+    if (!chatMessages) return;
+    
+    const messageDiv = document.createElement('div');
+    messageDiv.className = `message ${isUser ? 'user-message' : 'tega-message'}`;
+    
+    const avatarDiv = document.createElement('div');
+    avatarDiv.className = `message-avatar ${isUser ? 'user-avatar' : ''}`;
+    avatarDiv.textContent = isUser ? '👤' : '🦉';
+    
+    const bubbleDiv = document.createElement('div');
+    bubbleDiv.className = 'message-bubble';
+    bubbleDiv.textContent = text;
+    
+    if (isUser) {
+      messageDiv.appendChild(bubbleDiv);
+      messageDiv.appendChild(avatarDiv);
+    } else {
+      messageDiv.appendChild(avatarDiv);
+      messageDiv.appendChild(bubbleDiv);
+    }
+    
+    chatMessages.appendChild(messageDiv);
+    chatMessages.scrollTop = chatMessages.scrollHeight;
+  }
+
+  function generateTegaResponse(userMessage) {
+    const responses = {
+      'tell me a story': 'Once upon a time, there was a curious owl named Tega who loved helping children learn new things every day! 🦉',
+      'how do you spell water': 'The word "water" is spelled: W-A-T-E-R. Great question! 💧',
+      "let's count": 'Let\'s count together! 1... 2... 3... 4... 5! You\'re doing great! 🎉',
+      'fun fact please': 'Fun fact: Did you know that butterflies taste with their feet? Isn\'t that amazing? 🦋',
+    };
+    
+    const lowerMessage = userMessage.toLowerCase();
+    for (const [key, response] of Object.entries(responses)) {
+      if (lowerMessage.includes(key)) {
+        return response;
+      }
+    }
+    
+    return 'That\'s interesting! Tell me more, or ask me another question! 😊';
+  }
+
+  function sendMessage() {
+    if (!messageInput || !messageInput.value.trim()) return;
+    
+    const userMessage = messageInput.value.trim();
+    addMessage(userMessage, true);
+    messageInput.value = '';
+    
+    // Simulate Tega's response after a short delay
+    setTimeout(() => {
+      const response = generateTegaResponse(userMessage);
+      addMessage(response, false);
+    }, 800);
+  }
+
+  if (sendBtn) {
+    sendBtn.addEventListener('click', sendMessage);
+  }
+
+  if (messageInput) {
+    messageInput.addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') {
+        sendMessage();
+      }
+    });
+  }
+
+  // Quick idea buttons
+  quickIdeaBtns.forEach(btn => {
+    btn.addEventListener('click', () => {
+      const idea = btn.textContent;
+      if (messageInput) {
+        messageInput.value = idea;
+        sendMessage();
+      }
+    });
+  });
 })();
