@@ -4,6 +4,7 @@ from dotenv import load_dotenv
 import os
 from typing import Dict, List, Optional
 from pydantic import BaseModel
+import re
 
 load_dotenv()
 
@@ -137,6 +138,7 @@ async def handle_chat_message(session_id: str, user_input: str):
             (part.get('text') for part in content_parts if isinstance(part, dict) and part.get('type') == 'text'),
             None
         )
+        ai_text = re.sub(r"\*\*(.*?)\*\*", r"\1", ai_text)
 
         print(ai_text)
 
