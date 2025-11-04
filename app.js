@@ -203,8 +203,8 @@
 
   if (startJourneyBtn) {
     startJourneyBtn.addEventListener('click', () => {
-      // Navigate to student dashboard
-      location.href = 'dashboard.html';
+      // Navigate to profile setup first
+      location.href = 'profile-setup.html';
     });
   }
 
@@ -217,6 +217,65 @@
 
   if (closeBtn) {
     closeBtn.addEventListener('click', () => {
+      location.href = 'index.html';
+    });
+  }
+
+  // Profile Setup Page
+  const continueBtn = document.getElementById('continue-to-dashboard');
+  if (continueBtn) {
+    continueBtn.addEventListener('click', () => {
+      // Get form values
+      const name = document.getElementById('profile-name')?.value;
+      const age = document.getElementById('profile-age')?.value;
+      const voiceGuidance = document.getElementById('voice-guidance')?.checked;
+      const readingSupport = document.getElementById('reading-support')?.checked;
+      const reducedMotion = document.getElementById('reduced-motion')?.checked;
+      const breakReminders = document.getElementById('break-reminders')?.checked;
+
+      // Store preferences
+      const preferences = {
+        name: name || '',
+        age: age || '',
+        accessibility: {
+          voiceGuidance,
+          readingSupport,
+          reducedMotion,
+          breakReminders
+        }
+      };
+
+      try {
+        sessionStorage.setItem('tegaPreferences', JSON.stringify(preferences));
+      } catch (e) {
+        console.error('Failed to save preferences:', e);
+      }
+
+      // Navigate to appropriate dashboard based on user type
+      const user = sessionStorage.getItem('tegaUser');
+      let dashboardUrl = 'dashboard.html';
+      
+      if (user) {
+        try {
+          const userData = JSON.parse(user);
+          if (userData.role === 'adult') {
+            dashboardUrl = 'dashboard-adult.html';
+          } else if (userData.role === 'parent') {
+            dashboardUrl = 'dashboard.html'; // Parent dashboard (can be created separately)
+          }
+        } catch (e) {
+          console.error('Failed to parse user data:', e);
+        }
+      }
+
+      location.href = dashboardUrl;
+    });
+  }
+
+  // Profile close button
+  const profileClose = document.querySelector('.profile-close');
+  if (profileClose) {
+    profileClose.addEventListener('click', () => {
       location.href = 'index.html';
     });
   }
