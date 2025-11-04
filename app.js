@@ -8,67 +8,80 @@
     quiz: document.getElementById('screen-quiz')
   };
 
+  // Helpers
+  function qs(q){ return document.querySelector(q); }
+  function qsa(q){ return Array.from(document.querySelectorAll(q)); }
+  function getQueryParam(key){ return new URLSearchParams(location.search).get(key); }
+
   let selectedRole = null;
 
-  // Navigation helper
+  // Navigation helper (only toggles existing screens)
   function showScreen(name){
-    for(const key of Object.keys(screens)){
+    Object.keys(screens).forEach(key => {
       const el = screens[key];
+      if(!el) return;
       const active = key === name;
       el.hidden = !active;
       el.classList.toggle('active', active);
-    }
+    });
     // Theme switch by screen
     if(name === 'quiz') body.className = 'theme-lavender';
     else body.className = 'theme-peach';
   }
 
-  // Landing role buttons
-  document.querySelectorAll('.role-card').forEach(btn => {
-    btn.addEventListener('click', () => {
-      selectedRole = btn.dataset.role;
-      showScreen('signup');
-      document.getElementById('name').focus();
+  // Landing role buttons -> navigate to dedicated signup page
+  if (screens.landing) {
+    qsa('.role-card').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const role = btn.dataset.role || 'student';
+        location.href = `signup.html?role=${encodeURIComponent(role)}`;
+      });
     });
-  });
+  }
 
-  // Sign in link simply returns to signup for demo
-  document.getElementById('link-signin').addEventListener('click', (e)=>{
-    e.preventDefault();
-    showScreen('signup');
-  });
-
-  // Simple form validation and proceed to quiz
+  // Signup page wiring
   const signupForm = document.getElementById('signup-form');
-  signupForm.addEventListener('submit', (e)=>{
-    e.preventDefault();
-    const name = document.getElementById('name');
-    const email = document.getElementById('email');
-    const password = document.getElementById('password');
-
-    let ok = true;
-    // reset errors
-    ['name-error','email-error','password-error'].forEach(id=>{document.getElementById(id).textContent=''});
-
-    if(!name.value.trim()){
-      document.getElementById('name-error').textContent = 'Please enter a name.';
-      ok = false;
-    }
-    if(email.value && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.value)){
-      document.getElementById('email-error').textContent = 'Please enter a valid email.';
-      ok = false;
-    }
-    if(password.value.length < 6){
-      document.getElementById('password-error').textContent = 'Use at least 6 characters.';
-      ok = false;
+  if (signupForm) {
+    selectedRole = getQueryParam('role') || 'student';
+    const signinLink = document.getElementById('link-signin');
+    if (signinLink) {
+      signinLink.addEventListener('click', (e)=>{
+        // demo "sign in" just jumps to quiz
+        e.preventDefault();
+        location.href = 'quiz.html';
+      });
     }
 
-    if(!ok) return;
+    signupForm.addEventListener('submit', (e)=>{
+      e.preventDefault();
+      const name = document.getElementById('name');
+      const email = document.getElementById('email');
+      const password = document.getElementById('password');
 
-    // Store a tiny bit for personalization (in-memory for demo)
-    window.__tegaUser = { name: name.value.trim(), role: selectedRole || 'student' };
-    startQuiz();
-  });
+      let ok = true;
+      ['name-error','email-error','password-error'].forEach(id=>{ const el = document.getElementById(id); if(el) el.textContent=''; });
+
+      if(!name.value.trim()){
+        document.getElementById('name-error').textContent = 'Please enter a name.';
+        ok = false;
+      }
+      if(email.value && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.value)){
+        document.getElementById('email-error').textContent = 'Please enter a valid email.';
+        ok = false;
+      }
+      if(password.value.length < 6){
+        document.getElementById('password-error').textContent = 'Use at least 6 characters.';
+        ok = false;
+      }
+
+      if(!ok) return;
+
+      // Persist minimal info and go to quiz.html
+      const user = { name: name.value.trim(), role: selectedRole };
+      try { sessionStorage.setItem('tegaUser', JSON.stringify(user)); } catch {}
+      location.href = 'quiz.html';
+    });
+  }
 
   // Quiz data
   const questions = [
@@ -90,6 +103,7 @@
   const btnNext = document.getElementById('btn-next');
 
   function startQuiz(){
+    if(!screens.quiz) return; // Not on a page with quiz
     qIndex = 0;
     showScreen('quiz');
     renderQuestion();
@@ -99,11 +113,11 @@
     const total = questions.length;
     const num = qIndex + 1;
     const pct = Math.round(((qIndex) / total) * 100);
-    progressBar.style.width = `${pct}%`;
-    progressLabel.textContent = `Question ${num} of ${total}`;
+  if(progressBar) progressBar.style.width = `${pct}%`;
+  if(progressLabel) progressLabel.textContent = `Question ${num} of ${total}`;
 
-    qText.textContent = questions[qIndex].text;
-    optionsEl.innerHTML = '';
+  if(qText) qText.textContent = questions[qIndex].text;
+  if(optionsEl) optionsEl.innerHTML = '';
 
     choices.forEach((label, i) => {
       const id = `opt-${qIndex}-${i}`;
@@ -124,7 +138,7 @@
         if(ev.key === 'Enter' || ev.key === ' '){ ev.preventDefault(); selectOption(i); }
       });
 
-      optionsEl.appendChild(opt);
+      optionsEl && optionsEl.appendChild(opt);
     });
 
     // restore previous selection if exists
@@ -135,8 +149,8 @@
       btnNext.disabled = true;
     }
 
-    btnBack.disabled = qIndex === 0;
-    btnNext.textContent = (qIndex === questions.length - 1) ? 'Finish' : 'Next';
+    if(btnBack) btnBack.disabled = qIndex === 0;
+    if(btnNext) btnNext.textContent = (qIndex === questions.length - 1) ? 'Finish' : 'Next';
   }
 
   function setSelected(idx){
@@ -150,22 +164,25 @@
   function selectOption(choiceIndex, enableNext = true){
     answers[qIndex] = choiceIndex;
     setSelected(choiceIndex);
-    if(enableNext) btnNext.disabled = false;
+    if(enableNext && btnNext) btnNext.disabled = false;
   }
 
-  btnBack.addEventListener('click', ()=>{
-    if(qIndex > 0){ qIndex--; renderQuestion(); }
-  });
-  btnNext.addEventListener('click', ()=>{
-    if(answers[qIndex] == null){ btnNext.disabled = true; return; }
-    if(qIndex < questions.length - 1){
-      qIndex++;
-      renderQuestion();
-    } else {
-      // finished — simple demo finish screen
-      finish();
-    }
-  });
+  if(btnBack){
+    btnBack.addEventListener('click', ()=>{
+      if(qIndex > 0){ qIndex--; renderQuestion(); }
+    });
+  }
+  if(btnNext){
+    btnNext.addEventListener('click', ()=>{
+      if(answers[qIndex] == null){ if(btnNext) btnNext.disabled = true; return; }
+      if(qIndex < questions.length - 1){
+        qIndex++;
+        renderQuestion();
+      } else {
+        finish();
+      }
+    });
+  }
 
   function finish(){
     // Simple friendly completion
@@ -183,6 +200,13 @@
     `;
     body.className = 'theme-lavender';
     const restart = document.getElementById('btn-restart');
-    restart?.addEventListener('click', ()=>{ location.reload(); });
+    restart?.addEventListener('click', ()=>{ location.href = 'index.html'; });
+  }
+
+  // If index.html loaded with #quiz, start the quiz (legacy support)
+  // Or if quiz.html is loaded, auto-start quiz
+  if ((location.hash === '#quiz' || location.pathname.includes('quiz.html')) && screens.quiz) {
+    try { const u = sessionStorage.getItem('tegaUser'); if(u) window.__tegaUser = JSON.parse(u); } catch {}
+    startQuiz();
   }
 })();

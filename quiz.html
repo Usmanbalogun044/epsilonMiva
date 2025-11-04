@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Personalize — Tega</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body class="theme-lavender">
+    <main id="app">
+      <!-- Questionnaire Screen -->
+      <section id="screen-quiz" class="screen active" aria-labelledby="quiz-title">
+        <div class="container">
+          <h2 id="quiz-title" class="headline">Let's learn about you</h2>
+          <p class="subhead">Help us personalize your experience</p>
+
+          <div class="progress">
+            <div class="progress-track" aria-hidden="true">
+              <div class="progress-bar" id="progress-bar" style="width: 0%"></div>
+            </div>
+            <div id="progress-label" class="progress-label" aria-live="polite">Question 1 of 4</div>
+          </div>
+
+          <div class="question-card" role="group" aria-labelledby="question-text">
+            <div class="question-emoji" aria-hidden="true">📖</div>
+            <h3 id="question-text" class="question-text">Loading…</h3>
+
+            <div class="options" id="options">
+              <!-- Options injected by JS -->
+            </div>
+          </div>
+
+          <div class="actions">
+            <button class="btn btn-subtle" id="btn-back">Back</button>
+            <button class="btn btn-primary" id="btn-next" disabled>Next</button>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <script src="app.js"></script>
+  </body>
+</html>
