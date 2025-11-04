@@ -48,7 +48,7 @@
       signinLink.addEventListener('click', (e)=>{
         // demo "sign in" just jumps to quiz
         e.preventDefault();
-        location.href = 'quiz.html';
+        location.href = 'path.html';
       });
     }
 
@@ -76,10 +76,10 @@
 
       if(!ok) return;
 
-      // Persist minimal info and go to quiz.html
+      // Persist minimal info and go to path.html
       const user = { name: name.value.trim(), role: selectedRole };
       try { sessionStorage.setItem('tegaUser', JSON.stringify(user)); } catch {}
-      location.href = 'quiz.html';
+      location.href = 'path.html';
     });
   }
 
@@ -204,8 +204,8 @@
   }
 
   // If index.html loaded with #quiz, start the quiz (legacy support)
-  // Or if quiz.html is loaded, auto-start quiz
-  if ((location.hash === '#quiz' || location.pathname.includes('quiz.html')) && screens.quiz) {
+  // Or if path.html is loaded, auto-start quiz
+  if ((location.hash === '#quiz' || location.pathname.includes('path.html')) && screens.quiz) {
     try { const u = sessionStorage.getItem('tegaUser'); if(u) window.__tegaUser = JSON.parse(u); } catch {}
     startQuiz();
   }

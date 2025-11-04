@@ -88,7 +88,7 @@ input:focus{box-shadow:inset 0 0 0 2px #6f79ff33, 0 0 0 3px #6f79ff22}
 .progress{max-width:860px;margin:10px auto 22px}
 .progress-track{height:8px;background:#eceef6;border-radius:999px;position:relative;overflow:hidden}
 .progress-bar{height:100%;background:#23263a;border-radius:999px;transition:width .25s ease}
-.progress-label{color:var(--muted);margin-top:10px}
+.progress-label{color:var(--muted);margin-top:16px}
 
 .question-card{max-width:860px;margin:22px auto;background:rgba(255,255,255,.86);backdrop-filter:blur(2px);border-radius:var(--radius-lg);box-shadow:var(--shadow);padding:28px}
 .question-emoji{font-size:40px;margin:0 auto 12px}
