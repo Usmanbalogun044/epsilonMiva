@@ -185,22 +185,8 @@
   }
 
   function finish(){
-    // Simple friendly completion
-    screens.quiz.querySelector('.container').innerHTML = `
-      <div class="logo-badge">🦉</div>
-      <h2 class="headline">Thanks ${window.__tegaUser?.name || ''}!</h2>
-      <p class="subhead">You're all set. Tega will personalize your experience based on your answers.</p>
-      <div class="question-card" style="max-width:700px">
-        <h3 style="margin-top:0">Your preferences</h3>
-        <ul style="text-align:left;line-height:1.9;margin:0 auto;max-width:560px">
-          ${questions.map((q,i)=>`<li><strong>${q.text}</strong><br/><span style="color:#5f6472">${choices[answers[i]]}</span></li>`).join('')}
-        </ul>
-      </div>
-      <div class="actions"><button class="btn btn-primary" id="btn-restart">Return Home</button></div>
-    `;
-    body.className = 'theme-lavender';
-    const restart = document.getElementById('btn-restart');
-    restart?.addEventListener('click', ()=>{ location.href = 'index.html'; });
+    // Navigate to results page
+    location.href = 'results.html';
   }
 
   // If index.html loaded with #quiz, start the quiz (legacy support)
@@ -208,5 +194,31 @@
   if ((location.hash === '#quiz' || location.pathname.includes('path.html')) && screens.quiz) {
     try { const u = sessionStorage.getItem('tegaUser'); if(u) window.__tegaUser = JSON.parse(u); } catch {}
     startQuiz();
+  }
+
+  // Results page handlers
+  const startJourneyBtn = document.querySelector('.start-journey-btn');
+  const adjustPrefsBtn = document.querySelector('.adjust-prefs-btn');
+  const closeBtn = document.querySelector('.close-btn');
+
+  if (startJourneyBtn) {
+    startJourneyBtn.addEventListener('click', () => {
+      // Navigate to main app/dashboard (placeholder for now)
+      alert('Welcome to your personalized learning journey! 🎓');
+      location.href = 'index.html';
+    });
+  }
+
+  if (adjustPrefsBtn) {
+    adjustPrefsBtn.addEventListener('click', () => {
+      // Go back to quiz to adjust preferences
+      location.href = 'path.html';
+    });
+  }
+
+  if (closeBtn) {
+    closeBtn.addEventListener('click', () => {
+      location.href = 'index.html';
+    });
   }
 })();
