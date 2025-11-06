@@ -1,60 +1,42 @@
 <?php
 
-namespace App\Http\Controllers\Api;
+namespace App\Http\Controllers;
 
-use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
-use Symfony\Component\HttpFoundation\Response;
-use App\Models\Survey;
+use Illuminate\Routing\Controller;
 use App\Models\SurveyQuestion;
-use Illuminate\Support\Facades\Validator;
+use App\Models\Survey;
+use Illuminate\Support\Facades\Auth;
 
-class SurveyController extends Controller
+class SurveyWebController extends Controller
 {
     protected array $allowed = ['agree', 'disagree', 'neutral', 'strongly agree'];
 
-    /**
-     * Return the authenticated user's survey answers.
-     */
     public function show(Request $request)
     {
-        // Return available survey questions with their options, plus the user's saved answers
         $questions = SurveyQuestion::with('options')->orderBy('order')->get();
-
         $user = $request->user();
-        $saved = $user->survey ?? null;
+        $saved = $user ? $user->survey : null;
 
-        return response()->json([
+        return view('survey', [
             'questions' => $questions,
-            // 'saved_answers' => $saved ? [
-            //     'q1' => $saved->q1,
-            //     'q2' => $saved->q2,
-            //     'q3' => $saved->q3,
-            //     'q4' => $saved->q4,
-            // ] : null,
+            'saved_answers' => $saved ? [
+                'q1' => $saved->q1,
+                'q2' => $saved->q2,
+                'q3' => $saved->q3,
+                'q4' => $saved->q4,
+            ] : null,
         ]);
     }
 
-    /**
-     * Store or update the authenticated user's survey answers.
-     */
-    public function store(Request $request)
+    public function submit(Request $request)
     {
-        $validator = Validator::make($request->all(), [
+        $data = $request->validate([
             'q1' => ['required'],
             'q2' => ['required'],
             'q3' => ['required'],
             'q4' => ['required'],
         ]);
-
-        if ($validator->fails()) {
-            return response()->json([
-            'message' => 'Validation failed.',
-            'errors' => $validator->errors(),
-            ], Response::HTTP_UNPROCESSABLE_ENTITY);
-        }
-
-        $data = $validator->validated();
 
         $valueMap = [
             1 => 'agree',
@@ -68,7 +50,6 @@ class SurveyController extends Controller
                 $int = intval($val);
                 return $valueMap[$int] ?? null;
             }
-            // normalize string labels
             $label = strtolower(trim((string) $val));
             $label = str_replace('_', ' ', $label);
             return $label;
@@ -78,21 +59,20 @@ class SurveyController extends Controller
         foreach (['q1','q2','q3','q4'] as $q) {
             $answers[$q] = $normalize($data[$q]);
             if (! in_array($answers[$q], $this->allowed, true)) {
-                return response()->json([
-                    'message' => "Invalid answer for {$q}. Allowed: " . implode(', ', $this->allowed),
-                ], Response::HTTP_UNPROCESSABLE_ENTITY);
+                return back()->withErrors(["{$q}" => "Invalid answer for {$q}. Allowed: " . implode(', ', $this->allowed)]);
             }
         }
 
         $user = $request->user();
+        if (! $user) {
+            return redirect()->route('login');
+        }
 
-        // create or update the user's survey row (store labels)
         $survey = Survey::updateOrCreate(
             ['user_id' => $user->id],
             array_merge(['user_id' => $user->id], $answers)
         );
 
-        // Analyze answers to produce a simple recommendation message
         $counts = [
             'agree' => 0,
             'strongly agree' => 0,
@@ -114,7 +94,6 @@ class SurveyController extends Controller
         } elseif ($counts['neutral'] >= 3) {
             $message = 'You are flexible in your learning — a balanced mix of formats works well for you.';
         } else {
-            // fallback: choose highest category
             $max = max($counts);
             $tops = array_keys($counts, $max, true);
             if (in_array('agree', $tops, true) || in_array('strongly agree', $tops, true)) {
@@ -126,17 +105,6 @@ class SurveyController extends Controller
             }
         }
 
-        return response()->json([
-            'survey' => [
-                'q1' => $survey->getAttribute('q1'),
-                'q2' => $survey->getAttribute('q2'),
-                'q3' => $survey->getAttribute('q3'),
-                'q4' => $survey->getAttribute('q4'),
-            ],
-            'result' => [
-                'message' => $message,
-                'counts' => $counts,
-            ],
-        ]);
+        return redirect()->route('survey.show')->with(['result_message' => $message, 'counts' => $counts]);
     }
 }
